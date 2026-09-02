@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Bell, Building2, CalendarDays, Check, ChevronDown, Menu, Store } from 'lucide-react'
 import { useApp, DATE_PRESETS } from '../../state/AppContext.jsx'
 import { fmtRange } from '../../lib/date.js'
 import { initials, money } from '../../lib/format.js'
 import { ALL_OUTLETS } from '../../lib/metrics.js'
 import { AlertList } from '../alerts/AlertList.jsx'
+import { LogoMark } from '../brand/Logo.jsx'
 import { Badge, cx } from '../ui/Primitives.jsx'
-import { NAV_ITEMS } from './Sidebar.jsx'
 
 function useOutsideClose(onClose) {
   const ref = useRef(null)
@@ -252,22 +252,31 @@ function ProfileMenu() {
   )
 }
 
+/**
+ * The bar carries the two global controls and nothing else. The page title used
+ * to live here as well as in PageHeader; one of them had to go.
+ */
 export function Topbar({ onMenu }) {
-  const { pathname } = useLocation()
-  const active = NAV_ITEMS.find((n) => (n.end ? pathname === n.to : pathname.startsWith(n.to)))
-
   return (
     <header className="no-print sticky top-0 z-30 border-b border-ink-200/70 bg-ink-50/85 backdrop-blur">
-      <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-        <button type="button" onClick={onMenu} className="rounded-lg border border-ink-200 bg-white p-2 text-ink-600 lg:hidden">
+      <div className="flex items-center gap-2 px-4 py-3 sm:px-6">
+        <button
+          type="button"
+          onClick={onMenu}
+          aria-label="Open navigation"
+          className="rounded-lg border border-ink-200 bg-white p-2 text-ink-600 transition hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-900/10 lg:hidden"
+        >
           <Menu size={16} />
         </button>
 
-        <h1 className="hidden text-[15px] font-semibold text-ink-900 sm:block">{active?.label ?? 'Dashboard'}</h1>
+        <LogoMark size={24} className="lg:hidden" />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <OutletSelector />
           <DateSelector />
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
           <Notifications />
           <ProfileMenu />
         </div>

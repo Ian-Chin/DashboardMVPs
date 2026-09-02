@@ -11,8 +11,10 @@ export function PageHeader({ title, description, actions, onExportCsv, showPrint
     <div className={cx('mb-5 flex flex-wrap items-end justify-between gap-3', className)}>
       <div className="min-w-0">
         <h1 className="text-xl font-semibold tracking-tight text-ink-900">{title}</h1>
-        <p className="mt-1 text-[13px] text-ink-500">
-          {description ? `${description} · ` : ''}
+        {description && <p className="mt-1 text-[13px] text-ink-500">{description}</p>}
+        {/* Scope and period are set in the top bar, which print CSS hides —
+            restate them here so the exported PDF still carries them. */}
+        <p className="mt-1 hidden text-[13px] text-ink-500 print:block">
           {scopeLabel} · {fmtRange(range.from, range.to)}
         </p>
       </div>
