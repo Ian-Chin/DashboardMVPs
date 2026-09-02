@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import {
   Boxes,
   ChefHat,
@@ -22,7 +22,7 @@ export const NAV_GROUPS = [
   {
     label: 'Overview',
     items: [
-      { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
       { to: '/profitability', label: 'Profitability', icon: TrendingUp },
     ],
   },
@@ -60,7 +60,9 @@ export function Sidebar({ open, onClose }) {
         )}
       >
         <div className="flex items-center justify-between px-5 pb-5 pt-5">
-          <Logo size={28} tone="dark" subtitle="Profitability layer" />
+          <Link to="/" onClick={onClose} title="All businesses" className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/50">
+            <Logo size={28} tone="dark" subtitle="Profitability layer" />
+          </Link>
           <button
             type="button"
             onClick={onClose}

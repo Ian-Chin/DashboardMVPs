@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Check } from 'lucide-react'
 import { AlertList } from '../components/alerts/AlertList.jsx'
 import { BarChart, Legend, RankedBars } from '../components/charts/Charts.jsx'
+import { DashboardSelect } from '../components/layout/DashboardSelect.jsx'
 import { PageHeader } from '../components/layout/PageHeader.jsx'
 import { KpiCard, KpiStrip } from '../components/ui/KpiCard.jsx'
 import { DataTable } from '../components/ui/DataTable.jsx'
@@ -139,12 +140,16 @@ export default function Dashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Dashboard"
+        description="Where the money is going this period. Switch views from the picker on the right."
         showPrint={false}
         actions={
-          <Link to="/reports" className="btn-ghost btn-sm">
-            Reports
-            <ArrowRight size={14} />
-          </Link>
+          <>
+            <DashboardSelect />
+            <Link to="/reports" className="btn-ghost btn-sm">
+              Reports
+              <ArrowRight size={14} />
+            </Link>
+          </>
         }
       />
 

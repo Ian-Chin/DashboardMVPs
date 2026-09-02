@@ -385,12 +385,66 @@ export function RankedBars({ items, formatValue = (v) => v, height = 'auto', bar
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
             <div
               className="h-full rounded-full"
-              style={{ width: `${top ? (item.value / top) * 100 : 0}%`, background: item.color || barColor || COLORS.profit }}
+              style={{
+                // Clamped: a negative width is invalid CSS and silently renders
+                // full-width. Negative series belong in <DivergingBars>.
+                width: `${top ? Math.max(0, (item.value / top) * 100) : 0}%`,
+                background: item.color || barColor || COLORS.profit,
+              }}
             />
           </div>
           {item.meta && <p className="mt-1 text-[11px] text-ink-500">{item.meta}</p>}
         </div>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Ranked bars that can go negative — a channel or SKU that loses money reads to
+ * the left of a zero line, not as an absent bar. Positive bars keep the entity
+ * colour; negative bars are red, because the sign is the point.
+ */
+export function DivergingBars({ items, formatValue = (v) => v, className }) {
+  const maxPos = Math.max(0, ...items.map((i) => i.value))
+  const maxNeg = Math.max(0, ...items.map((i) => -i.value))
+  const span = maxPos + maxNeg || 1
+  const negFrac = (maxNeg / span) * 100
+
+  return (
+    <div className={cx('space-y-2.5', className)}>
+      {items.map((item) => {
+        const negative = item.value < 0
+        const fill = negative ? COLORS.waste : item.color || COLORS.profit
+        const share = (Math.abs(item.value) / span) * 100
+        return (
+          <div key={item.label}>
+            <div className="mb-1 flex items-baseline justify-between gap-3">
+              <span className="truncate text-[13px] text-ink-700">{item.label}</span>
+              <span className={cx('tabular shrink-0 text-[13px] font-semibold', negative ? 'text-red-600' : 'text-ink-900')}>
+                {formatValue(item.value)}
+              </span>
+            </div>
+            <div className="flex h-1.5 w-full items-stretch overflow-hidden rounded-full bg-ink-100">
+              <div className="flex justify-end" style={{ width: `${negFrac}%` }}>
+                {negative && (
+                  <div className="h-full rounded-l-full" style={{ width: `${(share / (negFrac || 1)) * 100}%`, background: fill }} />
+                )}
+              </div>
+              <div className="w-px shrink-0 bg-ink-300" aria-hidden="true" />
+              <div className="flex" style={{ width: `${100 - negFrac}%` }}>
+                {!negative && (
+                  <div
+                    className="h-full rounded-r-full"
+                    style={{ width: `${(share / (100 - negFrac || 1)) * 100}%`, background: fill }}
+                  />
+                )}
+              </div>
+            </div>
+            {item.meta && <p className="mt-1 text-[11px] text-ink-500">{item.meta}</p>}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -480,21 +534,31 @@ export function Waterfall({ steps, height = 260, formatValue = (v) => v, classNa
   }, [steps])
 
   const maxVal = Math.max(...computed.map((c) => Math.max(c.from, c.to)), 0)
+  // A running total can end below zero — a channel that sells at a loss. The
+  // scale has to hold that, or the closing bar is drawn outside the plot.
+  const minVal = Math.min(...computed.map((c) => Math.min(c.from, c.to)), 0)
   const innerW = Math.max(10, width - PAD.left - PAD.right)
   const innerH = height - PAD.top - 42
   const band = innerW / Math.max(1, computed.length)
   const barW = Math.min(56, band * 0.56)
-  const y = (v) => PAD.top + innerH - (v / (maxVal || 1)) * innerH
+  const span = maxVal - minVal || 1
+  const y = (v) => PAD.top + innerH - ((v - minVal) / span) * innerH
 
   const colorFor = (s) =>
-    s.type === 'start' ? COLORS.revenue : s.type === 'total' ? COLORS.profit : s.color || COLORS.cost
+    s.type === 'start'
+      ? COLORS.revenue
+      : s.type === 'total'
+        ? s.to < 0
+          ? COLORS.waste // a closing total below zero is a loss, and reads as one
+          : COLORS.profit
+        : s.color || COLORS.cost
 
   return (
     <div ref={ref} className={cx('relative w-full', className)} style={{ height }}>
       {width > 0 && (
         <>
           <svg width={width} height={height} onMouseLeave={() => setHover(null)} className="block">
-            {niceTicks(0, maxVal).map((t) => (
+            {niceTicks(minVal, maxVal).map((t) => (
               <g key={t}>
                 <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke={COLORS.grid} />
                 <text x={PAD.left - 8} y={y(t)} textAnchor="end" dominantBaseline="middle" className="fill-ink-400 text-[10px]">
@@ -502,6 +566,9 @@ export function Waterfall({ steps, height = 260, formatValue = (v) => v, classNa
                 </text>
               </g>
             ))}
+            {minVal < 0 && (
+              <line x1={PAD.left} x2={width - PAD.right} y1={y(0)} y2={y(0)} stroke={COLORS.axis} strokeWidth={1} />
+            )}
             {computed.map((s, i) => {
               const cx0 = PAD.left + (i + 0.5) * band
               const top = Math.min(y(s.from), y(s.to))

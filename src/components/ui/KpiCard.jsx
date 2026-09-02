@@ -39,10 +39,14 @@ export function KpiCard({
         <p className={cx('tabular font-semibold tracking-tight text-ink-900', compact ? 'text-xl' : 'text-2xl')}>
           {value}
         </p>
-        <div className="mt-1 flex items-center gap-2">
-          <Delta value={delta} goodWhenUp={goodWhenUp} />
-          {comparisonLabel && <span className="truncate text-[12px] text-ink-400">{comparisonLabel}</span>}
-        </div>
+        {/* A tile with no comparison to make omits the row rather than
+            printing "no prior data" four times across a section. */}
+        {delta !== undefined && (
+          <div className="mt-1 flex items-center gap-2">
+            <Delta value={delta} goodWhenUp={goodWhenUp} />
+            {comparisonLabel && <span className="truncate text-[12px] text-ink-400">{comparisonLabel}</span>}
+          </div>
+        )}
       </div>
 
       {spark && spark.length > 1 && (
@@ -74,7 +78,9 @@ export function KpiStrip({ items, className }) {
             <p className="truncate text-[12px] text-ink-500">{item.label}</p>
             <p className="tabular mt-0.5 text-[17px] font-semibold tracking-tight text-ink-900">{item.value}</p>
             <div className="mt-0.5 flex items-baseline gap-2">
-              <Delta value={item.delta} goodWhenUp={item.goodWhenUp ?? true} showIcon={false} />
+              {item.delta !== undefined && (
+                <Delta value={item.delta} goodWhenUp={item.goodWhenUp ?? true} showIcon={false} />
+              )}
               {item.note && <span className="truncate text-[11px] text-ink-400">{item.note}</span>}
             </div>
           </div>
