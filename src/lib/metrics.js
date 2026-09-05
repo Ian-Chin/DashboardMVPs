@@ -261,7 +261,7 @@ export function targetsFor(outletId, from, to) {
 // ---------------------------------------------------------------------------
 
 export const MENU_CLASSES = {
-  star: { key: 'star', label: 'Star', icon: '★', tone: 'success', blurb: 'Popular and profitable — protect it.' },
+  star: { key: 'star', label: 'Star', icon: '★', tone: 'success', blurb: 'Popular and profitable. Protect it.' },
   plowhorse: { key: 'plowhorse', label: 'Plowhorse', icon: '◐', tone: 'warning', blurb: 'Sells well, earns little.' },
   puzzle: { key: 'puzzle', label: 'Puzzle', icon: '◆', tone: 'info', blurb: 'High margin, low volume.' },
   dog: { key: 'dog', label: 'Dog', icon: '●', tone: 'danger', blurb: 'Low volume, low margin.' },

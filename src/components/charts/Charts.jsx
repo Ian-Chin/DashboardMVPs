@@ -117,7 +117,7 @@ function Tooltip({ x, width, children }) {
 function TooltipRows({ title, rows }) {
   return (
     <>
-      <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-ink-500">{title}</p>
+      <p className="chart-label mb-1 text-[11px] font-semibold text-ink-500">{title}</p>
       {rows.map((r) => (
         <div key={r.label} className="flex items-center justify-between gap-4 py-0.5">
           <span className="flex items-center gap-1.5 text-[12px] text-ink-600">
@@ -504,7 +504,7 @@ export function Donut({ segments, size = 168, thickness = 22, centerLabel, cente
       {(centerLabel || centerValue) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="tabular text-lg font-semibold text-ink-900">{centerValue}</span>
-          <span className="text-[11px] uppercase tracking-wide text-ink-500">{centerLabel}</span>
+          <span className="chart-label text-[11px] text-ink-500">{centerLabel}</span>
         </div>
       )}
     </div>
@@ -640,7 +640,7 @@ export function HeatGrid({ rows, cols, cells, formatValue = (v) => v, lowIsBad =
       <table className="w-full border-separate" style={{ borderSpacing: 2 }}>
         <thead>
           <tr>
-            <th className="w-10 text-left text-[10px] font-medium uppercase tracking-wide text-ink-400">{colLabel}</th>
+            <th className="chart-label w-10 text-left text-[10px] font-medium text-ink-400">{colLabel}</th>
             {cols.map((c) => (
               <th key={c.key} className="text-center text-[10px] font-medium text-ink-400">
                 {c.label}

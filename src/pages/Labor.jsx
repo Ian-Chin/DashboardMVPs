@@ -120,7 +120,7 @@ export default function Labor() {
 
       {laborAlerts.length > 0 && (
         <Card>
-          <CardHeader title="Labour recommendations" subtitle="Threshold and comparison rules — no forecasting model" />
+          <CardHeader title="Labour recommendations" subtitle="Threshold and comparison rules, no forecasting model" />
           <AlertList alerts={laborAlerts} onDismiss={dismissAlert} currency={currency} />
         </Card>
       )}

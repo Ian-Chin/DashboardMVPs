@@ -1,17 +1,16 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Info } from 'lucide-react'
 import { AlertList } from '../../components/alerts/AlertList.jsx'
-import { BarChart, DivergingBars, Legend, RankedBars, Waterfall } from '../../components/charts/Charts.jsx'
+import { BarChart, DivergingBars, Legend, Waterfall } from '../../components/charts/Charts.jsx'
 import { PageHeader } from '../../components/layout/PageHeader.jsx'
 import { DataTable } from '../../components/ui/DataTable.jsx'
 import { KpiCard, KpiStrip } from '../../components/ui/KpiCard.jsx'
+import { ProfitAndLoss } from '../../components/ui/ProfitAndLoss.jsx'
 import { Badge, Card, CardHeader, Delta, ProgressBar, SectionTitle, cx } from '../../components/ui/Primitives.jsx'
-import { fmtDate } from '../../lib/date.js'
+import { fmtDate, fmtRange } from '../../lib/date.js'
 import { money, moneyShort, num, pct } from '../../lib/format.js'
 import { bucketDaily } from '../../lib/metrics.js'
 import { COLORS, SERIES_COLORS } from '../../lib/palette.js'
-import { CLASSES, ECOM_TARGETS } from '../../lib/ecomMetrics.js'
+import { ECOM_TARGETS, pnlStatement } from '../../lib/ecomMetrics.js'
 import { useEcom } from '../../state/EcomContext.jsx'
 
 /** Fixed channel colours, assigned in catalogue order and never recycled, so a
@@ -31,10 +30,6 @@ function Verdict() {
   const { verdict, current, delta, currency, channelLabel } = useEcom()
   const biggest = verdict.issues.reduce((best, a) => ((a.impact || 0) > (best?.impact || 0) ? a : best), null)
 
-  const r = 34
-  const circumference = 2 * Math.PI * r
-  const dash = (verdict.score / 100) * circumference
-  const ringTone = { success: 'text-brand-500', warning: 'text-amber-500', danger: 'text-red-500' }[verdict.tone]
 
   const pillars = [
     { label: 'Contribution margin', value: current.contributionPct, target: ECOM_TARGETS.contributionPct, up: true },
@@ -44,53 +39,28 @@ function Verdict() {
 
   return (
     <section className="card">
-      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
-        <div className="relative h-[92px] w-[92px] shrink-0">
-          <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
-            <circle cx="44" cy="44" r={r} fill="none" stroke="currentColor" className="text-ink-100" strokeWidth="9" />
-            <circle
-              cx="44"
-              cy="44"
-              r={r}
-              fill="none"
-              stroke="currentColor"
-              className={ringTone}
-              strokeWidth="9"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="tabular text-[26px] font-semibold leading-none tracking-tight text-ink-900">
-              {verdict.score}
-            </span>
-            <span className="mt-1 text-[10px] uppercase tracking-wider text-ink-400">{verdict.label}</span>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-8 sm:p-6">
         <div className="min-w-0 flex-1">
           {verdict.issues.length ? (
             <>
-              <h2 className="text-[22px] font-semibold tracking-tight text-ink-900">
+              <h2 className="tabular text-[24px] font-semibold tracking-tight text-ink-900">
                 {money(verdict.impact, { currency })} a month is leaking
               </h2>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-600">
-                {channelLabel} keeps {pct(current.contributionPct)} of net revenue as contribution —{' '}
+              <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-ink-600">
+                {channelLabel} keeps {pct(current.contributionPct)} of net revenue as contribution, which is{' '}
                 {money(current.contributionPerOrder, { currency, decimals: 2 })} an order.
                 {biggest && (
                   <>
-                    {' '}Biggest leak: <span className="font-medium text-ink-900">{biggest.title}</span>.
+                    {' '}The biggest leak is <span className="font-medium text-ink-900">{biggest.title}</span>.
                   </>
                 )}
               </p>
             </>
           ) : (
             <>
-              <h2 className="text-[22px] font-semibold tracking-tight text-ink-900">Every channel clears its target</h2>
-              <p className="mt-1.5 flex items-center gap-2 text-[13px] text-ink-600">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                  <Check size={12} />
-                </span>
+              <h2 className="text-[24px] font-semibold tracking-tight text-ink-900">Every channel clears its target</h2>
+              <p className="mt-2 flex items-center gap-2 text-[14px] text-ink-600">
+                <Check size={15} className="shrink-0 text-brand-600" />
                 Contribution, returns and ad load all sit inside their thresholds.
               </p>
             </>
@@ -98,15 +68,26 @@ function Verdict() {
         </div>
 
         <div className="shrink-0 sm:text-right">
-          <p className="text-[12px] text-ink-500">Contribution this period</p>
-          <p className="tabular text-[22px] font-semibold tracking-tight text-ink-900">
+          <p className="text-[13px] text-ink-500">Contribution this period</p>
+          <p className="tabular mt-1 text-[22px] font-semibold tracking-tight text-ink-900">
             {money(current.contribution, { currency })}
           </p>
           <Delta value={delta.contribution} className="sm:justify-end" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-ink-100 px-5 py-4 sm:grid-cols-3 sm:px-6">
+      <div className="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink-100 px-5 py-4 sm:grid-cols-4 sm:px-6">
+        <div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[13px] text-ink-600">Overall health</span>
+            <span className="tabular text-[13px] font-semibold text-ink-900">{verdict.score}</span>
+          </div>
+          <ProgressBar
+            className="mt-2"
+            value={verdict.score}
+            tone={verdict.score >= 75 ? 'success' : verdict.score >= 55 ? 'warning' : 'danger'}
+          />
+        </div>
         {pillars.map((p) => {
           const ok = p.up ? p.value >= p.target : p.value <= p.target
           const ratio = p.up
@@ -115,12 +96,12 @@ function Verdict() {
           return (
             <div key={p.label}>
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-[12px] text-ink-600">{p.label}</span>
-                <span className="tabular text-[12px] font-medium text-ink-800">
+                <span className="truncate text-[13px] text-ink-600">{p.label}</span>
+                <span className="tabular text-[13px] font-semibold text-ink-900">
                   {pct(p.value)} <span className="font-normal text-ink-400">/ {pct(p.target, 0)}</span>
                 </span>
               </div>
-              <ProgressBar className="mt-1.5" value={ratio} tone={ok ? 'success' : ratio > 70 ? 'warning' : 'danger'} />
+              <ProgressBar className="mt-2" value={ratio} tone={ok ? 'success' : ratio > 70 ? 'warning' : 'danger'} />
             </div>
           )
         })}
@@ -180,27 +161,20 @@ export default function EcomOverview() {
     delta,
     verdict,
     channelRows,
-    products,
-    returns,
     marketing,
     currency,
     channelLabel,
     channelId,
+    compareLabel,
+    comparePhrase,
+    compareRange,
+    range,
   } = useEcom()
-
-  const [classFilter, setClassFilter] = useState(null)
 
   const series = bucketDaily(current.daily, 24)
   const spark = (key) => current.daily.map((d) => d[key])
-
-  const productRows = classFilter ? products.rows.filter((r) => r.classification.key === classFilter) : products.rows
-  const classCounts = Object.values(CLASSES).map((c) => ({
-    ...c,
-    count: products.rows.filter((r) => r.classification.key === c.key).length,
-    contribution: products.rows
-      .filter((r) => r.classification.key === c.key)
-      .reduce((s, r) => s + r.contribution, 0),
-  }))
+  const priorSpark = (key) => previous.daily.map((d) => d[key])
+  const pnl = pnlStatement(current, previous, marketing.rows)
 
   const statusFor = (value, target, up = false) =>
     up
@@ -224,26 +198,36 @@ export default function EcomOverview() {
 
       <section>
         <SectionTitle
-          right={<span className="text-[12px] text-ink-400">Change is against the previous {current.days} days</span>}
+          right={
+            <span className="text-[12px] text-ink-400">
+              Change is against {comparePhrase}, {fmtRange(compareRange.from, compareRange.to)}
+            </span>
+          }
         >
           Money
         </SectionTitle>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="kpi-grid">
           <KpiCard
+            expandable
             label="Net revenue"
             value={money(current.netAfterReturns, { currency })}
             delta={delta.net}
             spark={spark('netAfterReturns')}
+            priorDaily={priorSpark('netAfterReturns')}
+            formatValue={(v) => money(v, { currency })}
             sparkColor={COLORS.revenue}
-            footnote="Previous period"
+            footnote="Comparison period"
             target={money(previous.netAfterReturns, { currency })}
           />
           <KpiCard
+            expandable
             label="Contribution"
             value={money(current.contribution, { currency })}
             delta={delta.contribution}
             spark={spark('contribution')}
+            priorDaily={priorSpark('contribution')}
+            formatValue={(v) => money(v, { currency })}
             footnote="Contribution margin"
             target={pct(current.contributionPct)}
           />
@@ -288,11 +272,54 @@ export default function EcomOverview() {
         />
       </section>
 
+      <section>
+        <SectionTitle
+          right={<span className="text-[12px] text-ink-400">{channelLabel}, {fmtRange(range.from, range.to)}</span>}
+        >
+          Profit and loss
+        </SectionTitle>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <Card className="xl:col-span-2">
+            <CardHeader
+              title="Contribution margin statement"
+              subtitle="Read down. Every line carries what it takes out of a ringgit of net revenue"
+            />
+            <ProfitAndLoss
+              blocks={pnl}
+              base={current.netAfterReturns}
+              compareLabel={compareLabel}
+              formatValue={(v) => money(v, { currency })}
+              formatPct={(v) => pct(v, 1)}
+            />
+            <Method>
+              Overhead sits below this line and is not in the dataset, so contribution margin is the last honest
+              subtotal. It is what an order leaves behind before payroll, software and rent.
+            </Method>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Where the money goes"
+              subtitle={`${channelLabel}, this period`}
+              to="/ecommerce/fulfilment"
+            />
+            <div className="px-2 pb-2 pt-4 sm:px-3">
+              <Waterfall steps={current.waterfall} height={280} formatValue={(v) => money(v, { currency })} />
+            </div>
+            <Method>
+              Returns are booked against the order that caused them, not the day the parcel came back, so product
+              margin carries its own returns.
+            </Method>
+          </Card>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader
             title="Revenue and contribution by day"
-            subtitle="Ad spend plotted on the same scale — it is money out of the same pocket"
+            subtitle="Ad spend plotted on the same scale, because it is money out of the same pocket"
             right={
               <Legend
                 items={[
@@ -320,31 +347,17 @@ export default function EcomOverview() {
         </Card>
 
         <Card>
-          <CardHeader
-            title="Where the money goes"
-            subtitle={`${channelLabel}, this period`}
-            right={
-              <Link to="/ecommerce/fulfilment" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-                Delivery
-              </Link>
-            }
-          />
-          <div className="px-2 pb-2 pt-4 sm:px-3">
-            <Waterfall
-              steps={current.waterfall}
-              height={280}
-              formatValue={(v) => money(v, { currency })}
-            />
-          </div>
+          <CardHeader title="Sessions to orders" subtitle={`${channelLabel}, ${current.days} days`} />
+          <Funnel steps={current.funnel} />
           <Method>
-            Returns are booked against the order that caused them, not the day the parcel came back, so product margin
-            carries its own returns.
+            Sessions and orders are counted; the three steps between them are modelled at fixed rates, so read them as
+            shape, not as truth.
           </Method>
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
+      <section className="grid grid-cols-1 gap-4">
+        <Card>
           <CardHeader
             title="Needs attention"
             subtitle={
@@ -354,15 +367,6 @@ export default function EcomOverview() {
             }
           />
           <AlertList alerts={verdict.issues} currency={currency} />
-        </Card>
-
-        <Card>
-          <CardHeader title="Sessions to orders" subtitle={`${channelLabel}, ${current.days} days`} />
-          <Funnel steps={current.funnel} />
-          <Method>
-            Sessions and orders are counted; the three steps between them are modelled at fixed rates, so read them as
-            shape, not as truth.
-          </Method>
         </Card>
       </section>
 
@@ -393,7 +397,7 @@ export default function EcomOverview() {
           <Card className="xl:col-span-2">
             <CardHeader
               title="Channel comparison"
-              subtitle="A marketplace order is not worth a storefront order — this is by how much"
+              subtitle="A marketplace order is not worth a storefront order. This is by how much"
             />
             <DataTable
               dense
@@ -453,215 +457,6 @@ export default function EcomOverview() {
             />
           </Card>
         </div>
-      </section>
-
-      <section>
-        <SectionTitle
-          right={
-            <span className="flex items-center gap-3">
-              {classFilter && (
-                <button
-                  type="button"
-                  onClick={() => setClassFilter(null)}
-                  className="text-[12px] font-medium text-brand-700"
-                >
-                  Clear filter
-                </button>
-              )}
-              <Link to="/ecommerce/products" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-                All products
-              </Link>
-            </span>
-          }
-        >
-          Products
-        </SectionTitle>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {classCounts.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => setClassFilter(classFilter === c.key ? null : c.key)}
-              aria-pressed={classFilter === c.key}
-              className={cx(
-                'card card-pad text-left transition hover:border-ink-300',
-                classFilter === c.key && 'border-ink-900 ring-1 ring-ink-900',
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <Badge tone={c.tone} dot>
-                  {c.label}
-                </Badge>
-                <span className="tabular text-[13px] font-semibold text-ink-900">{c.count}</span>
-              </div>
-              <p className="tabular mt-2 text-[15px] font-semibold text-ink-900">
-                {money(c.contribution, { currency })}
-              </p>
-              <p className="mt-0.5 text-[12px] leading-snug text-ink-500">{c.note}</p>
-            </button>
-          ))}
-        </div>
-
-        <Card className="mt-3">
-          <DataTable
-            searchable
-            searchKeys={['name', 'sku', 'category']}
-            searchPlaceholder="Search SKU or name…"
-            initialSort={{ key: 'contribution', dir: 'desc' }}
-            rows={productRows}
-            emptyTitle="No products in this group"
-            columns={[
-              {
-                key: 'name',
-                label: 'Product',
-                render: (r) => (
-                  <div>
-                    <p className="font-medium text-ink-900">{r.name}</p>
-                    <p className="text-[12px] text-ink-500">
-                      {r.sku} · {r.category}
-                    </p>
-                  </div>
-                ),
-              },
-              { key: 'units', label: 'Units', align: 'right', render: (r) => num(r.units) },
-              { key: 'netRevenue', label: 'Net revenue', align: 'right', render: (r) => money(r.netRevenue, { currency }) },
-              {
-                key: 'contribution',
-                label: 'Contribution',
-                align: 'right',
-                render: (r) => (
-                  <span className={r.contribution < 0 ? 'text-red-600' : 'text-ink-800'}>
-                    {money(r.contribution, { currency })}
-                  </span>
-                ),
-              },
-              {
-                key: 'contributionPerUnit',
-                label: 'Per unit',
-                align: 'right',
-                render: (r) => money(r.contributionPerUnit, { currency, decimals: 2 }),
-              },
-              {
-                key: 'returnRatePct',
-                label: 'Returns',
-                align: 'right',
-                render: (r) => (
-                  <span className={r.returnRatePct > ECOM_TARGETS.returnRatePct ? 'text-red-600' : 'text-ink-800'}>
-                    {pct(r.returnRatePct)}
-                  </span>
-                ),
-              },
-              {
-                key: 'daysCover',
-                label: 'Days cover',
-                align: 'right',
-                render: (r) => (
-                  <span className={r.daysCover !== null && r.daysCover < 7 ? 'text-amber-700' : 'text-ink-800'}>
-                    {r.daysCover === null ? '—' : r.daysCover.toFixed(1)}
-                  </span>
-                ),
-              },
-              {
-                key: 'classification',
-                label: 'Group',
-                align: 'right',
-                value: (r) => r.classification.label,
-                render: (r) => <Badge tone={r.classification.tone}>{r.classification.label}</Badge>,
-              },
-            ]}
-          />
-          <Method>
-            Channel fees and ad spend are allocated to a SKU by its share of revenue, delivery by its share of parcel
-            weight. Available-to-sell is stock on hand minus units committed to open orders across every channel.
-          </Method>
-        </Card>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader
-            title="Marketing"
-            subtitle="Blended, not click-attributed — spend against the revenue of the channels it feeds"
-            right={
-              <Link to="/ecommerce/marketing" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-                Detail
-              </Link>
-            }
-          />
-          <DataTable
-            dense
-            initialSort={{ key: 'spend', dir: 'desc' }}
-            rowKey={(r) => r.id}
-            rows={marketing.rows}
-            columns={[
-              { key: 'name', label: 'Platform', render: (r) => <span className="font-medium text-ink-900">{r.name}</span> },
-              { key: 'spend', label: 'Spend', align: 'right', render: (r) => money(r.spend, { currency }) },
-              { key: 'sharePct', label: 'Share', align: 'right', render: (r) => pct(r.sharePct, 0) },
-              {
-                key: 'attributed',
-                label: 'Attributed revenue',
-                align: 'right',
-                render: (r) => money(r.attributed, { currency }),
-              },
-              {
-                key: 'roas',
-                label: 'Blended ROAS',
-                align: 'right',
-                render: (r) => (
-                  <Badge tone={r.roas >= 6 ? 'success' : r.roas >= 4 ? 'warning' : 'danger'}>{r.roas.toFixed(2)}×</Badge>
-                ),
-              },
-            ]}
-          />
-          <div className="border-t border-ink-100 px-5 py-3 text-[13px] text-ink-600">
-            {money(current.cac, { currency, decimals: 2 })} of ad cost sits in every order, against{' '}
-            {money(current.contributionPerOrder, { currency, decimals: 2 })} of contribution.
-          </div>
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Returns"
-            subtitle={`${pct(current.returnRatePct)} of units, ${money(current.returnValue, { currency })} refunded`}
-            right={
-              <Link to="/ecommerce/returns" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-                Detail
-              </Link>
-            }
-          />
-          <div className="card-pad">
-            <RankedBars
-              items={returns.reasons.map((r) => ({
-                label: r.label,
-                value: r.units,
-                color: r.recoverable < 0.3 ? COLORS.waste : COLORS.neutral,
-                meta: `${pct(r.sharePct, 0)} of returns · ${money(r.writeOff, { currency })} written off`,
-              }))}
-              formatValue={(v) => num(v)}
-            />
-          </div>
-          <div className="border-t border-ink-100">
-            <p className="px-5 pt-3 text-[12px] font-semibold uppercase tracking-wider text-ink-500">
-              Worst return rates
-            </p>
-            <ul className="divide-y divide-ink-100">
-              {returns.worst.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-medium text-ink-800">{r.name}</span>
-                    <span className="block text-[12px] text-ink-500">{num(r.units)} sold</span>
-                  </span>
-                  <span className="tabular shrink-0 text-[13px] font-medium text-red-600">{pct(r.returnRatePct)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <Method>
-            Red bars are reasons the stock does not come back sellable — damage and faults are a write-off, not a
-            restock.
-          </Method>
-        </Card>
       </section>
 
       <p className="flex flex-wrap items-center gap-x-2 text-[12px] leading-relaxed text-ink-400">

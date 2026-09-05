@@ -37,7 +37,7 @@ export default function Launcher() {
             >
               {health.score}
             </span>
-            {health.label} health · {company.name}
+            {health.label} · {company.name}
           </span>
           <span>{scopeLabel}</span>
           <span>{fmtRange(range.from, range.to)}</span>

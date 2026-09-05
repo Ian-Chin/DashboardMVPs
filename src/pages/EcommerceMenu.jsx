@@ -17,6 +17,7 @@ export default function EcommerceMenu() {
 
   return (
     <LauncherShell
+      theme="ecom"
       back={{ to: '/', label: 'All businesses' }}
       title="E-commerce"
       subtitle={
@@ -29,7 +30,7 @@ export default function EcommerceMenu() {
           <span>All channels</span>
           <span>{fmtRange(range.from, range.to)}</span>
           <span className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
             {store.platform} synced {store.lastSync}
           </span>
         </>
@@ -43,7 +44,7 @@ export default function EcommerceMenu() {
               key={item.key}
               to={item.to}
               style={{ animationDelay: `${i * 45}ms` }}
-              className="group card animate-fade-up flex items-start gap-3.5 p-4 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-pop focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/50"
+              className="group card animate-fade-up flex items-start gap-3.5 p-4 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-pop focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-900/15"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-50 text-ink-500 transition group-hover:bg-brand-50 group-hover:text-brand-600">
                 <item.icon size={19} strokeWidth={1.9} />

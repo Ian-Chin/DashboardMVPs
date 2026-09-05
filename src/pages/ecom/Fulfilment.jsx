@@ -42,7 +42,7 @@ export default function EcomFulfilment() {
         }
       />
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="kpi-grid">
         <KpiCard
           label="Delivery cost"
           value={money(f.totals.net, { currency })}
@@ -169,7 +169,7 @@ export default function EcomFulfilment() {
           {dearest && (
             <p className="border-t border-ink-100 px-5 py-3 text-[12px] leading-relaxed text-ink-500">
               <span className="font-medium text-ink-800">{dearest.name}</span> is the dearest to ship at{' '}
-              {money(dearest.perOrder, { currency, decimals: 2 })} a parcel — no channel subsidy, and the heaviest
+              {money(dearest.perOrder, { currency, decimals: 2 })} a parcel, with no channel subsidy, and the heaviest
               average basket at {qty(dearest.avgWeight, 'kg')}.
             </p>
           )}

@@ -374,7 +374,7 @@ export default function Reports() {
 
       <Card className="card-pad text-[12px] text-ink-500">
         Reports respect the outlet and date range in the top bar. CSV opens in Excel or Google Sheets; PDF uses your
-        browser's print dialog — choose “Save as PDF”.
+        browser's print dialog, then choose “Save as PDF”.
       </Card>
     </div>
   )

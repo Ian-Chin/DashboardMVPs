@@ -37,10 +37,19 @@ export function rangeKeys(from, to) {
   return out
 }
 
-/** Same-length window immediately before [from,to]. Used for every comparison. */
+/** Same-length window immediately before [from,to]. The default comparison. */
 export function previousRange(from, to) {
   const len = diffDays(from, to) + 1
   return { from: addDays(from, -len), to: addDays(from, -1) }
+}
+
+/** The same window shifted back a whole number of weeks, so every day lands on
+ *  the same weekday. Retail demand is a weekday shape before it is anything
+ *  else; an unaligned comparison reads a Saturday against a Tuesday and calls
+ *  the difference performance. */
+export function shiftedRange(from, to, weeks) {
+  const days = weeks * 7
+  return { from: addDays(from, -days), to: addDays(to, -days) }
 }
 
 export function dayOfWeek(key) {
@@ -76,7 +85,7 @@ export function fmtRange(from, to) {
   const sameYear = from.slice(0, 4) === to.slice(0, 4)
   const left = fmtDate(from, sameYear ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' })
   const right = fmtDate(to, { day: 'numeric', month: 'short', year: 'numeric' })
-  return `${left} – ${right}`
+  return `${left} to ${right}`
 }
 
 export function startOfMonth(key) {

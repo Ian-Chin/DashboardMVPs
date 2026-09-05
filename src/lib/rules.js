@@ -222,7 +222,7 @@ export function evaluateRules(outletId, from, to, thresholds = DEFAULT_THRESHOLD
       metric: fmtRM(worstBlock.splh),
       target: fmtRM(labor.avgSplh),
       impact: monthly(worstBlock.hours * 12 * 4, days) / 4,
-      action: `Cut one position from ${worstBlock.dowLabel} ${fmtHour(worstBlock.hour)}–${fmtHour(worstBlock.hour + 3)}.`,
+      action: `Cut one position from ${worstBlock.dowLabel} ${fmtHour(worstBlock.hour)} to ${fmtHour(worstBlock.hour + 3)}.`,
       link: { to: '/labor', label: 'View intraday' },
     })
   }
@@ -447,7 +447,7 @@ export function evaluateRules(outletId, from, to, thresholds = DEFAULT_THRESHOLD
       metric: fmtRM(monthlyProfit),
       target: fmtRM(profitTarget),
       impact: profitTarget - monthlyProfit,
-      action: 'Work the top three issues on this list — they carry most of the gap.',
+      action: 'Work the top three issues on this list. They carry most of the gap.',
       link: { to: '/profitability', label: 'Open P&L' },
     })
   }

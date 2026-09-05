@@ -151,7 +151,7 @@ function RestaurantTab() {
       </Card>
 
       <Card className="lg:col-span-2">
-        <CardHeader title="POS connection" subtitle="Costwise reads from your POS — it never replaces it" />
+        <CardHeader title="POS connection" subtitle="Costwise reads from your POS. It never replaces it" />
         <div className="card-pad flex flex-wrap items-center gap-6">
           <div>
             <p className="text-[12px] uppercase tracking-wide text-ink-500">Provider</p>

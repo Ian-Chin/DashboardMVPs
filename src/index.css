@@ -1,10 +1,99 @@
+/* Geist is loaded for the e-commerce theme only. The restaurant theme keeps its
+   original stack, which names Inter and falls back to the system face. */
+@import '@fontsource-variable/geist/index.css';
+@import '@fontsource-variable/geist-mono/index.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* ---------------------------------------------------------------------
+     Theme A: restaurants. The original product theme, unchanged.
+     Cool slate neutrals, mint-leaning green, dark sidebar, lifted cards.
+     --------------------------------------------------------------------- */
   :root {
     color-scheme: light;
+
+    --ink-50: 246 247 249;
+    --ink-100: 236 238 242;
+    --ink-200: 213 218 226;
+    --ink-300: 176 185 200;
+    --ink-400: 132 146 168;
+    --ink-500: 100 116 139;
+    --ink-600: 77 90 110;
+    --ink-700: 63 74 90;
+    --ink-800: 43 51 63;
+    --ink-900: 27 33 42;
+    --ink-950: 15 19 25;
+
+    --brand-50: 238 251 244;
+    --brand-100: 214 245 228;
+    --brand-200: 176 233 205;
+    --brand-300: 123 215 174;
+    --brand-400: 67 189 139;
+    --brand-500: 31 162 112;
+    --brand-600: 18 130 91;
+    --brand-700: 15 104 75;
+    --brand-800: 15 82 61;
+    --brand-900: 13 68 52;
+
+    --font-sans: Inter, ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-features: 'cv02', 'cv03', 'cv04', 'tnum';
+
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18), 0 2px 8px rgba(16, 24, 40, 0.06);
+
+    /* A panel rests with a lift here. */
+    --panel-shadow: var(--shadow-card);
+    --panel-border: rgb(var(--ink-200) / 0.7);
+  }
+
+  /* ---------------------------------------------------------------------
+     Theme B: e-commerce. Applied by the shell in EcomLayout.jsx.
+     Hue-free neutrals, deeper green, light sidebar, flat panels, Geist.
+     --------------------------------------------------------------------- */
+  [data-theme='ecom'] {
+    --ink-50: 247 247 245;
+    --ink-100: 238 238 236;
+    --ink-200: 221 220 216;
+    --ink-300: 188 187 183;
+    --ink-400: 138 137 133;
+    --ink-500: 110 109 105;
+    --ink-600: 85 84 79;
+    --ink-700: 69 68 63;
+    --ink-800: 48 47 43;
+    --ink-900: 28 27 24;
+    --ink-950: 17 17 16;
+
+    --brand-50: 238 247 241;
+    --brand-100: 216 237 225;
+    --brand-200: 178 220 196;
+    --brand-300: 127 196 161;
+    --brand-400: 71 166 124;
+    --brand-500: 31 138 99;
+    --brand-600: 21 112 80;
+    --brand-700: 17 90 65;
+    --brand-800: 16 72 54;
+    --brand-900: 14 59 45;
+
+    --font-sans: 'Geist Variable', Geist, ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+      sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-features: 'tnum';
+
+    --shadow-card: 0 1px 2px rgba(28, 27, 24, 0.04);
+    --shadow-pop: 0 10px 30px -10px rgba(28, 27, 24, 0.16), 0 2px 6px rgba(28, 27, 24, 0.05);
+
+    /* A panel is defined by its edge, not by a lift off the page. */
+    --panel-shadow: 0 0 #0000;
+    --panel-border: rgb(var(--ink-200));
+
+    font-family: var(--font-sans);
+    font-feature-settings: var(--font-features);
+    background-color: rgb(var(--ink-50));
+    color: rgb(var(--ink-900));
   }
 
   html,
@@ -15,7 +104,7 @@
 
   body {
     @apply bg-ink-50 text-ink-900 antialiased;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'tnum';
+    font-feature-settings: var(--font-features);
   }
 
   /* Numeric columns stay aligned across rows. */
@@ -40,15 +129,33 @@
 
 @layer components {
   .card {
-    @apply rounded-xl border border-ink-200/70 bg-white shadow-card;
+    @apply rounded-xl bg-white;
+    border: 1px solid var(--panel-border);
+    box-shadow: var(--panel-shadow);
   }
 
   .card-pad {
     @apply p-4 sm:p-5;
   }
 
+  /* E-commerce only: a four-up metric row reads as one block of four rather
+     than four floating objects. One border around the set, hairlines between
+     the cells. The restaurant pages keep their four separate cards. */
+  .kpi-grid {
+    @apply grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-ink-200 bg-ink-200
+           sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .kpi-grid > .card {
+    @apply rounded-none;
+    border: 0;
+    box-shadow: none;
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border text-sm font-medium transition
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-900/15 focus-visible:ring-offset-2
+           focus-visible:ring-offset-ink-50
            disabled:pointer-events-none disabled:opacity-50 px-3 py-2;
   }
 
@@ -58,6 +165,10 @@
 
   .btn-ghost {
     @apply btn border-ink-200 bg-white text-ink-700 hover:bg-ink-50;
+  }
+
+  [data-theme='ecom'] .btn-ghost {
+    @apply hover:border-ink-300;
   }
 
   .btn-sm {
@@ -83,6 +194,25 @@
 
   .section-title {
     @apply text-[13px] font-semibold uppercase tracking-wider text-ink-500;
+  }
+
+  /* Small labels inside charts: tooltip titles, donut centres, heatmap heads. */
+  .chart-label {
+    @apply uppercase tracking-wide;
+  }
+
+  /* E-commerce drops the uppercase micro-label rhythm. Sentence case for
+     section headings, column heads and chart labels alike. */
+  [data-theme='ecom'] .section-title {
+    @apply text-[14px] font-semibold normal-case tracking-tight text-ink-900;
+  }
+
+  [data-theme='ecom'] .th {
+    @apply text-[12px] normal-case tracking-normal;
+  }
+
+  [data-theme='ecom'] .chart-label {
+    @apply normal-case tracking-normal;
   }
 
   @media print {

@@ -73,7 +73,7 @@ function SkuDetail({ row, channelId, range, currency, onClose }) {
       </div>
 
       <div className="border-t border-ink-100 px-5 py-4">
-        <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-500">Units per day</p>
+        <p className="text-[12px] font-semibold text-ink-500">Units per day</p>
         <LineChart
           className="mt-2"
           data={detail.daily}
@@ -86,7 +86,7 @@ function SkuDetail({ row, channelId, range, currency, onClose }) {
       </div>
 
       <div className="border-t border-ink-100 px-5 py-4">
-        <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-500">Where it sells</p>
+        <p className="text-[12px] font-semibold text-ink-500">Where it sells</p>
         <RankedBars
           className="mt-2.5"
           items={detail.mix.map((m) => ({
@@ -100,7 +100,7 @@ function SkuDetail({ row, channelId, range, currency, onClose }) {
       </div>
 
       <div className="border-t border-ink-100 px-5 py-4">
-        <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-500">Stock</p>
+        <p className="text-[12px] font-semibold text-ink-500">Stock</p>
         <div className="mt-2">
           <StatRow label="Available to sell" value={num(row.ats)} />
           <StatRow label="Committed to open orders" value={num(row.committed)} />
@@ -378,7 +378,7 @@ export default function EcomProducts() {
       </section>
 
       <p className="text-[12px] leading-relaxed text-ink-400">
-        A SKU is a Winner or a Drag against the median of this list, not a fixed threshold — the split moves with the
+        A SKU is a Winner or a Drag against the median of this list, not a fixed threshold, so the split moves with the
         catalogue. Fees and ad spend are allocated by share of revenue, delivery by share of parcel weight.
       </p>
     </div>

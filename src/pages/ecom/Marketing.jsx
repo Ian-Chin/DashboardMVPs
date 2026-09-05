@@ -37,7 +37,7 @@ export default function EcomMarketing() {
         }
       />
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="kpi-grid">
         <KpiCard
           label="Ad spend"
           value={money(current.adSpend, { currency })}
@@ -83,7 +83,7 @@ export default function EcomMarketing() {
         <Card className="xl:col-span-2">
           <CardHeader
             title="Spend against contribution"
-            subtitle="Both in ringgit, on one scale — the day ad spend clears the green bar is a day that lost money"
+            subtitle="Both in ringgit, on one scale. The day ad spend clears the green bar is a day that lost money"
           />
           <div className="px-2 pb-3 pt-4 sm:px-3">
             <BarChart
@@ -160,7 +160,7 @@ export default function EcomMarketing() {
               {worst && (
                 <>
                   <span className="font-medium text-ink-800">{worst.name}</span> returns {worst.roas.toFixed(2)}× on{' '}
-                  {money(worst.spend, { currency })} of spend — the first place to cut if ad load has to come down.
+                  {money(worst.spend, { currency })} of spend, the first place to cut if ad load has to come down.
                 </>
               )}
             </span>

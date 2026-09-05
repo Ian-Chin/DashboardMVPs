@@ -12,7 +12,7 @@ import {
   platformSpend,
   returnReasonSplit,
 } from '../data/ecomData.js'
-import { previousRange, rangeKeys } from './date.js'
+import { previousRange, rangeKeys, shiftedRange } from './date.js'
 
 export const ALL_CHANNELS = 'all'
 
@@ -120,8 +120,40 @@ export function ecomPeriod(channelId, from, to) {
   return out
 }
 
-export function ecomPeriodWithComparison(channelId, from, to) {
-  const prev = previousRange(from, to)
+/**
+ * What the current period is measured against. Every analytics tool worth
+ * copying puts this next to the date range rather than hard-coding it.
+ *
+ * `weeks4` shifts back four whole weeks so each day lands on the same weekday
+ * and roughly the same point in the month. In a business whose demand is a
+ * weekday shape with campaign spikes on double-digit dates, that is the only
+ * honest like-for-like short of a full year, which this dataset does not hold.
+ */
+export const COMPARE_MODES = [
+  // `short` reads after "vs"; `phrase` reads inside a sentence.
+  {
+    key: 'previous',
+    label: 'Previous period',
+    short: 'previous period',
+    phrase: 'the previous period',
+    range: (f, t) => previousRange(f, t),
+  },
+  {
+    key: 'weeks4',
+    label: '4 weeks earlier',
+    short: '4 weeks earlier',
+    phrase: 'the same days four weeks earlier',
+    range: (f, t) => shiftedRange(f, t, 4),
+  },
+]
+
+export function compareRangeFor(mode, from, to) {
+  const m = COMPARE_MODES.find((c) => c.key === mode) || COMPARE_MODES[0]
+  return m.range(from, to)
+}
+
+export function ecomPeriodWithComparison(channelId, from, to, compareMode = 'previous') {
+  const prev = compareRangeFor(compareMode, from, to)
   const current = ecomPeriod(channelId, from, to)
   const previous = ecomPeriod(channelId, prev.from, prev.to)
 
@@ -131,6 +163,10 @@ export function ecomPeriodWithComparison(channelId, from, to) {
   return {
     current,
     previous,
+    compareMode,
+    compareRange: prev,
+    compareLabel: (COMPARE_MODES.find((c) => c.key === compareMode) || COMPARE_MODES[0]).short,
+    comparePhrase: (COMPARE_MODES.find((c) => c.key === compareMode) || COMPARE_MODES[0]).phrase,
     delta: {
       net: change(current.netAfterReturns, previous.netAfterReturns),
       contribution: change(current.contribution, previous.contribution),
@@ -264,10 +300,10 @@ export function productPerformance(channelId, from, to) {
 }
 
 export const CLASSES = {
-  winner: { key: 'winner', label: 'Winner', tone: 'success', note: 'High volume, high contribution — protect stock' },
-  volume: { key: 'volume', label: 'Volume', tone: 'warning', note: 'Sells hard, thin margin — fix cost or price' },
-  niche: { key: 'niche', label: 'Niche', tone: 'info', note: 'Rich margin, low volume — worth promoting' },
-  drag: { key: 'drag', label: 'Drag', tone: 'danger', note: 'Low volume and low contribution — cut or reprice' },
+  winner: { key: 'winner', label: 'Winner', tone: 'success', note: 'High volume, high contribution. Protect stock' },
+  volume: { key: 'volume', label: 'Volume', tone: 'warning', note: 'Sells hard, thin margin. Fix cost or price' },
+  niche: { key: 'niche', label: 'Niche', tone: 'info', note: 'Rich margin, low volume. Worth promoting' },
+  drag: { key: 'drag', label: 'Drag', tone: 'danger', note: 'Low volume and low contribution. Cut or reprice' },
 }
 
 function median(values) {
@@ -396,7 +432,7 @@ export function ecomIssues(channelId, from, to) {
         category: 'Channel',
         title: `${c.name} holds ${c.contributionPct.toFixed(1)}% contribution`,
         detail: `${c.contributionPerOrder.toFixed(2)} per order after everything.`,
-        action: 'Nothing to do — keep the mix as it is.',
+        action: 'Nothing to do. Keep the mix as it is.',
       })
     }
   }
@@ -409,7 +445,7 @@ export function ecomIssues(channelId, from, to) {
       category: 'Returns',
       title: `Return rate is ${current.returnRatePct.toFixed(1)}%`,
       detail: `Target is ${ECOM_TARGETS.returnRatePct}%. The excess costs refunded margin plus RM9.50 handling on every parcel that comes back.`,
-      action: 'Work the top reason in the returns panel — sizing copy, packaging, or the SKUs with the worst rate.',
+      action: 'Work the top reason in the returns panel: sizing copy, packaging, or the SKUs with the worst rate.',
       metric: `${current.returnRatePct.toFixed(1)}%`,
       target: `${ECOM_TARGETS.returnRatePct}%`,
       impact: perMonth((current.returnValue * excess) / (current.returnRatePct || 1)),
@@ -805,4 +841,59 @@ export function returnsAnalysis(channelId, from, to) {
         : 0,
     },
   }
+}
+
+
+/**
+ * The contribution-margin P&L, as an ordered statement rather than a chart.
+ *
+ * This is the shape every profit tool in the category converges on, and the
+ * reason is structural: a statement that does not put contribution margin on a
+ * single line cannot answer whether an order makes money before overhead.
+ * Revenue block, then cost of goods, then the variable costs an extra order
+ * actually incurs, and a subtotal after each.
+ *
+ * `kind` drives the rendering: 'cost' lines are shown as deductions, 'subtotal'
+ * lines rule off a block, 'total' is the answer.
+ */
+export function pnlStatement(current, previous, marketingRows = []) {
+  const line = (label, key, kind, note) => ({
+    label,
+    kind,
+    note,
+    value: current[key] ?? 0,
+    prior: previous ? previous[key] ?? 0 : null,
+  })
+
+  const marketing = marketingRows.map((r) => ({
+    label: r.name,
+    kind: 'cost',
+    indent: true,
+    value: r.spend,
+    prior: null,
+  }))
+
+  return [
+    { block: 'Revenue', lines: [
+      line('Gross sales', 'gross', 'revenue'),
+      line('Discounts', 'discount', 'cost'),
+      line('Returns and refunds', 'returnValue', 'cost'),
+      { label: 'Net revenue', kind: 'subtotal', value: current.netAfterReturns, prior: previous?.netAfterReturns ?? null },
+    ] },
+
+    { block: 'Cost of goods', lines: [
+      line('Product cost', 'cogsKept', 'cost', 'net of stock that came back sellable'),
+      { label: 'Gross profit', kind: 'subtotal', value: current.grossProfit, prior: previous?.grossProfit ?? null },
+    ] },
+
+    { block: 'Variable costs', lines: [
+      line('Channel fees', 'channelFees', 'cost', 'marketplace commission and payment processing'),
+      line('Delivery', 'shipping', 'cost', 'outbound carrier and pick-pack'),
+      line('Return handling', 'returnCost', 'cost', 'inbound freight and re-processing'),
+      { label: 'Ad spend', kind: 'cost', value: current.adSpend, prior: previous?.adSpend ?? null },
+      ...marketing,
+      { label: 'Contribution margin', kind: 'total', value: current.contribution, prior: previous?.contribution ?? null,
+        note: 'what an order leaves behind before overhead' },
+    ] },
+  ]
 }

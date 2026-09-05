@@ -33,7 +33,7 @@ export default function EcomReturns() {
         }
       />
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="kpi-grid">
         <KpiCard
           label="Return rate"
           value={pct(current.returnRatePct)}
@@ -114,7 +114,7 @@ export default function EcomReturns() {
               tone={r.cost.restockablePct >= 70 ? 'success' : r.cost.restockablePct >= 50 ? 'warning' : 'danger'}
             />
             <p className="mt-2 text-[12px] leading-relaxed text-ink-500">
-              {pct(unsellableShare, 0)} of returns arrive damaged or faulty — that stock never sells again, so it is a
+              {pct(unsellableShare, 0)} of returns arrive damaged or faulty. That stock never sells again, so it is a
               write-off rather than a restock.
             </p>
           </div>
@@ -139,7 +139,7 @@ export default function EcomReturns() {
             />
           </div>
           <p className="px-5 pb-4 text-[12px] leading-relaxed text-ink-500">
-            Red bars are reasons the stock does not come back sellable. Those are the ones worth fixing upstream — in
+            Red bars are reasons the stock does not come back sellable. Those are the ones worth fixing upstream, in
             packaging and in the listing, not in the returns desk.
           </p>
         </Card>
@@ -179,7 +179,7 @@ export default function EcomReturns() {
       <Card>
         <CardHeader
           title="Products"
-          subtitle="Ranked by refunded value — a high rate on a cheap SKU costs less than a low rate on an expensive one"
+          subtitle="Ranked by refunded value. A high rate on a cheap SKU costs less than a low rate on an expensive one"
         />
         <DataTable
           searchable
@@ -235,7 +235,7 @@ export default function EcomReturns() {
 
       <p className="text-[12px] leading-relaxed text-ink-400">
         A return costs three times: the refund, {money(FULFILMENT.returnHandling, { currency, decimals: 2 })} to handle
-        the parcel, and the stock itself when it comes back unsellable. Reason mix is stable per channel — damage
+        the parcel, and the stock itself when it comes back unsellable. Reason mix is stable per channel. Damage
         skews to the marketplaces, changed-mind to TikTok Shop.
       </p>
     </div>

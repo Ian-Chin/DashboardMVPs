@@ -273,7 +273,7 @@ export default function Profitability() {
       </section>
 
       <Card>
-        <CardHeader title="Profit by outlet" subtitle="Same period, every outlet — regardless of the scope selector" />
+        <CardHeader title="Profit by outlet" subtitle="Same period, every outlet, regardless of the scope selector" />
         <DataTable
           initialSort={{ key: 'operatingProfit', dir: 'desc' }}
           rows={outletCmp.rows}

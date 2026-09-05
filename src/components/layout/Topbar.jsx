@@ -149,7 +149,7 @@ function DateSelector() {
             onChange={(e) => setCustomRange(e.target.value, range.to)}
             className="input px-2 py-1.5 text-[12px]"
           />
-          <span className="text-ink-400">–</span>
+          <span className="text-[13px] text-ink-500">to</span>
           <input
             type="date"
             value={range.to}

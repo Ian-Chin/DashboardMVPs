@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check } from 'lucide-react'
 import { AlertList } from '../components/alerts/AlertList.jsx'
-import { BarChart, Legend, RankedBars } from '../components/charts/Charts.jsx'
+import { BarChart, Legend } from '../components/charts/Charts.jsx'
 import { DashboardSelect } from '../components/layout/DashboardSelect.jsx'
 import { PageHeader } from '../components/layout/PageHeader.jsx'
 import { KpiCard, KpiStrip } from '../components/ui/KpiCard.jsx'
-import { DataTable } from '../components/ui/DataTable.jsx'
-import { Badge, Card, CardHeader, Delta, ProgressBar, SectionTitle } from '../components/ui/Primitives.jsx'
-import { useMenu, useOutlets, usePeriod } from '../hooks/useMetrics.js'
+import { Card, CardHeader, ProgressBar, SectionTitle } from '../components/ui/Primitives.jsx'
+import { usePeriod } from '../hooks/useMetrics.js'
 import { fmtDate } from '../lib/date.js'
 import { money, moneyShort, num, pct } from '../lib/format.js'
 import { bucketDaily } from '../lib/metrics.js'
@@ -120,8 +119,6 @@ function Verdict() {
 export default function Dashboard() {
   const { currency, issues, dismissAlert, alerts } = useApp()
   const { current, previous, targets, delta } = usePeriod()
-  const menu = useMenu()
-  const outletCmp = useOutlets()
 
   const series = bucketDaily(current.daily, 24)
   const spark = (key) => current.daily.map((d) => d[key])
@@ -133,7 +130,6 @@ export default function Dashboard() {
         ? { tone: 'warning', label: 'At limit' }
         : { tone: 'success', label: 'On target' }
 
-  const topItems = [...menu.rows].sort((a, b) => b.profit - a.profit).slice(0, 5)
   const positives = alerts.filter((a) => a.severity === 'positive')
 
   return (
@@ -265,8 +261,8 @@ export default function Dashboard() {
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
+      <section>
+        <Card>
           <CardHeader
             title="Revenue vs profit"
             subtitle="Net sales, gross profit and operating profit by day"
@@ -294,103 +290,6 @@ export default function Dashboard() {
               formatValue={(v) => money(v, { currency })}
             />
           </div>
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Top menu items by profit"
-            subtitle={`${current.days} days`}
-            right={
-              <Link to="/menu" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-                Menu
-              </Link>
-            }
-          />
-          <div className="card-pad">
-            <RankedBars
-              items={topItems.map((r) => ({
-                label: r.name,
-                value: r.profit,
-                color: r.classification.key === 'star' ? COLORS.profit : COLORS.neutral,
-                meta: `${money(r.revenue, { currency })} revenue · ${pct(r.marginPct, 0)} margin · ${num(r.units)} sold`,
-              }))}
-              formatValue={(v) => money(v, { currency })}
-            />
-          </div>
-        </Card>
-      </section>
-
-      <section>
-        <SectionTitle
-          right={
-            <Link to="/profitability" className="text-[12px] font-medium text-brand-700 hover:text-brand-800">
-              Full comparison
-            </Link>
-          }
-        >
-          Outlet performance
-        </SectionTitle>
-        <Card>
-          <DataTable
-            dense
-            initialSort={{ key: 'operatingMarginPct', dir: 'desc' }}
-            rows={outletCmp.rows}
-            columns={[
-              {
-                key: 'name',
-                label: 'Outlet',
-                render: (r) => (
-                  <div>
-                    <p className="font-medium text-ink-900">{r.name}</p>
-                    <p className="text-[12px] text-ink-500">{r.city}</p>
-                  </div>
-                ),
-              },
-              { key: 'revenue', label: 'Net sales', align: 'right', render: (r) => money(r.revenue, { currency }) },
-              {
-                key: 'operatingProfit',
-                label: 'Operating profit',
-                align: 'right',
-                render: (r) => money(r.operatingProfit, { currency }),
-              },
-              {
-                key: 'operatingMarginPct',
-                label: 'Operating margin',
-                align: 'right',
-                render: (r) => (
-                  <Badge tone={r.operatingMarginPct >= 12 ? 'success' : r.operatingMarginPct >= 6 ? 'warning' : 'danger'}>
-                    {pct(r.operatingMarginPct)}
-                  </Badge>
-                ),
-              },
-              {
-                key: 'foodCostPct',
-                label: 'Food cost',
-                align: 'right',
-                render: (r) => (
-                  <span className={r.foodCostPct > r.targetFoodCostPct ? 'text-red-600' : 'text-ink-800'}>
-                    {pct(r.foodCostPct)}
-                  </span>
-                ),
-              },
-              {
-                key: 'laborCostPct',
-                label: 'Labour',
-                align: 'right',
-                render: (r) => (
-                  <span className={r.laborCostPct > r.targetLaborCostPct ? 'text-red-600' : 'text-ink-800'}>
-                    {pct(r.laborCostPct)}
-                  </span>
-                ),
-              },
-              {
-                key: 'revenueChangePct',
-                label: 'Revenue change',
-                align: 'right',
-                render: (r) => <Delta value={r.revenueChangePct} className="justify-end" />,
-              },
-            ]}
-          />
         </Card>
       </section>
 

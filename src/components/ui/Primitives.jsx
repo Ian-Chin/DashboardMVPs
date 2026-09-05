@@ -1,4 +1,5 @@
-import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { TONES } from '../../lib/palette.js'
 
 export function cx(...parts) {
@@ -13,11 +14,30 @@ export function Card({ className, children, ...rest }) {
   )
 }
 
-export function CardHeader({ title, subtitle, right, className }) {
+/**
+ * `to` turns the title itself into the drill-down link, which is the convention
+ * every analytics admin has settled on: the panel heading is the way into the
+ * full report, so the panel does not need a second small "Detail" link fighting
+ * the heading for the same job.
+ */
+export function CardHeader({ title, subtitle, right, to, className }) {
   return (
     <div className={cx('flex items-start justify-between gap-4 border-b border-ink-200/70 px-4 py-3 sm:px-5', className)}>
       <div className="min-w-0">
-        <h3 className="truncate text-[15px] font-semibold text-ink-900">{title}</h3>
+        {to ? (
+          <Link
+            to={to}
+            className="group inline-flex items-center gap-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-900/15"
+          >
+            <h3 className="truncate text-[15px] font-semibold text-ink-900 group-hover:text-brand-700">{title}</h3>
+            <ChevronRight
+              size={15}
+              className="shrink-0 text-ink-400 transition group-hover:translate-x-0.5 group-hover:text-brand-700"
+            />
+          </Link>
+        ) : (
+          <h3 className="truncate text-[15px] font-semibold text-ink-900">{title}</h3>
+        )}
         {subtitle && <p className="mt-0.5 text-[13px] text-ink-500">{subtitle}</p>}
       </div>
       {right && <div className="shrink-0">{right}</div>}
@@ -46,7 +66,7 @@ export function Badge({ tone = 'neutral', children, className, dot = false }) {
 /** Direction-aware change chip. `goodWhenUp=false` flips the colour logic. */
 export function Delta({ value, goodWhenUp = true, suffix = '', className, showIcon = true, unit = '%' }) {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return <span className={cx('text-[13px] text-ink-400', className)}>— no prior data</span>
+    return <span className={cx('text-[13px] text-ink-400', className)}>No prior data</span>
   }
   const flat = Math.abs(value) < 0.05
   const good = flat ? null : goodWhenUp ? value > 0 : value < 0
